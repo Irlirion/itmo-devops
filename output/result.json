@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-05-02T15:55:01.032801",
+  "statistics": {
+    "total": 2539,
+    "average": 50.78,
+    "min": 3,
+    "max": 97,
+    "count": 50
+  },
+  "transformation": {
+    "transformed_count": 50,
+    "above_average_count": 24,
+    "original_avg": 50.78,
+    "transformed_avg": 101.56
+  }
+}
