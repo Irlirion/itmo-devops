@@ -1,0 +1,12 @@
+.git
+*.md
+*.pyc
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.log
+.playwright/
+.playwright-cli/
+output/
