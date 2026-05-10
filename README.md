@@ -1,51 +1,54 @@
-# Lab 1: Apache Airflow with Docker Compose
+# Лабораторная работа 2: Apache Airflow + Apache Spark
 
-## Description
+Выполнила команда **Chat Gpt 10**.
 
-This project deploys Apache Airflow 2.7.1 using Docker Compose and includes a custom data processing DAG.
+## О чём эта работа
 
-## Files
+В этой лабораторной мы подключили Apache Spark к Airflow и запустили обработку данных через Spark-кластер. По сравнению с первой лабораторной, где вся логика крутилась внутри Python-операторов Airflow, теперь вычисления выполняются на отдельном Spark-кластере через `SparkSubmitOperator`.
 
-- `Dockerfile` - Custom Airflow image with DAGs
-- `docker-compose.yml` - Docker Compose configuration
-- `dags/data_pipeline.py` - Custom DAG with data processing pipeline
+## Что делает пайплайн
 
-## DAG Overview
+DAG `spark_data_pipeline` запускает один Spark-джоб, который:
 
-The `data_pipeline_dag` performs the following tasks:
+1. Генерирует 50 случайных чисел и создаёт из них Spark DataFrame
+2. Считает статистику — сумму, среднее, минимум и максимум
+3. Трансформирует данные — умножает каждое число на 2 и фильтрует те, что выше среднего
+4. Сохраняет результат в файл `/opt/airflow/output/spark_result.json`
 
-1. **generate_data** - Generates 50 random numbers
-2. **calculate_statistics** - Calculates total, average, min, max
-3. **transform_data** - Multiplies data by 2 and filters above average
-4. **save_results** - Saves results to JSON file
-5. **start/end** - Bash operators for logging
+## Сервисы
 
-## Deployment
+| Сервис | Адрес | Описание |
+|---|---|---|
+| Airflow UI | http://localhost:8080 | Управление DAG-ами (airflow / airflow) |
+| Spark Master UI | http://localhost:4040 | Мониторинг кластера и выполненных задач |
 
-### Prerequisites
+## Как запустить
 
-- Docker
-- Docker Compose
+Нужен Docker и Docker Compose. Больше ничего устанавливать не требуется.
 
-### Steps
+**1. Собрать образы и поднять все сервисы:**
 
-1. Build and start containers:
-   ```bash
-   docker-compose up -d --build
-   ```
+```bash
+docker-compose up -d --build
+```
 
-2. Wait for containers to become healthy:
-   ```bash
-   docker ps
-   ```
+**2. Подождать, пока всё стартует** (обычно 2–3 минуты):
 
-3. Access Airflow UI at: http://localhost:8080/
-   - Username: `airflow`
-   - Password: `airflow`
+```bash
+docker-compose ps
+```
 
-4. The DAG should appear in the Airflow UI and can be triggered manually.
+Все контейнеры должны перейти в статус `healthy`.
 
-## Cleanup
+**3. Открыть Airflow UI** по адресу http://localhost:8080, логин и пароль — `airflow`.
+
+**4. Запустить DAG** `spark_data_pipeline` вручную через кнопку ▶ в интерфейсе.
+
+**5. Убедиться в успехе** — DAG должен завершиться со статусом `success`, а в Spark UI на http://localhost:4040 появиться выполненное приложение в разделе *Completed Applications*.
+
+> Подключение `spark_local` к кластеру Spark создаётся автоматически при первом запуске — вручную ничего настраивать не нужно.
+
+## Остановка
 
 ```bash
 docker-compose down -v

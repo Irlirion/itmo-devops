@@ -13,8 +13,11 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
     _AIRFLOW_WWW_USER_USERNAME: 'airflow'
     _AIRFLOW_WWW_USER_PASSWORD: 'airflow'
+    SPARK_HOME: /home/airflow/.local/lib/python3.8/site-packages/pyspark
   volumes:
     - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./spark:/opt/airflow/spark
     - ./output:/opt/airflow/output
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -36,6 +39,34 @@ services:
       interval: 5s
       retries: 5
     restart: always
+
+  spark-master:
+    container_name: spark-master
+    image: apache/spark:3.5.0
+    ports:
+      - '4040:8080'
+      - '7077:7077'
+    command: '/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master'
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  spark-worker:
+    container_name: spark-worker
+    image: apache/spark:3.5.0
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    command: '/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077'
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   airflow-webserver:
     <<: *airflow-common
@@ -77,15 +108,25 @@ services:
     command:
       - -c
       - |
-        mkdir -p /opt/airflow/output
+        mkdir -p /opt/airflow/output /opt/airflow/logs
         airflow db migrate
         airflow connections create-default-connections
         airflow users list | grep -q airflow || \
           airflow users create -r Admin -u airflow -f Airflow -l User -e airflow@example.com -p airflow
+        airflow connections add 'spark_local' \
+          --conn-type 'spark' \
+          --conn-host 'spark://spark-master' \
+          --conn-port '7077' || true
     environment:
       <<: *airflow-common-env
       _AIRFLOW_WWW_USER_USERNAME: 'airflow'
       _AIRFLOW_WWW_USER_PASSWORD: 'airflow'
+    depends_on:
+      <<: *airflow-common-depends-on
+      spark-master:
+        condition: service_healthy
+      spark-worker:
+        condition: service_healthy
 
 volumes:
   postgres-db-volume:
