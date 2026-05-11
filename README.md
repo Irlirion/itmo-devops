@@ -1,10 +1,24 @@
-# Лабораторная работа 2: Apache Airflow + Apache Spark
+# Лабораторная работа 3: GitHub Actions CI/CD для Apache Airflow + Apache Spark
 
 Выполнила команда **Chat Gpt 10**.
 
 ## О чём эта работа
 
-В этой лабораторной мы подключили Apache Spark к Airflow и запустили обработку данных через Spark-кластер. По сравнению с первой лабораторной, где вся логика крутилась внутри Python-операторов Airflow, теперь вычисления выполняются на отдельном Spark-кластере через `SparkSubmitOperator`.
+В этой лабораторной работа из ЛР2 упакована в CI/CD pipeline на GitHub Actions. Pipeline проверяет структуру проекта, валидирует Python-файлы и Docker Compose конфигурацию, собирает Docker-образ и выполняет деплой через Docker Compose по правилам из задания.
+
+Основа приложения осталась из ЛР2: Apache Airflow запускает Spark-задачу через `SparkSubmitOperator`, а вычисления выполняются на отдельном Spark-кластере.
+
+## CI/CD pipeline
+
+Workflow находится в `.github/workflows/lab3-ci-cd.yml`.
+
+| Job | Когда запускается | Что делает |
+|---|---|---|
+| `test` | Всегда, во всех ветках | Проверяет наличие `dags/`, `spark/`, `Dockerfile`, `docker-compose.yml`; компилирует Python-файлы; валидирует Docker Compose |
+| `build` | После `test`; автоматически не запускается для `feature/*` | Собирает Docker-образ Airflow |
+| `deploy` | Автоматически только для `main`, `master`, `develop`; вручную через `workflow_dispatch` с `deploy=true` | Выполняет `docker compose up -d --build` |
+
+Все jobs закреплены за runner label `ubuntu-latest` через `runs-on`. В GitHub Actions это аналог выбора tagged runner в GitLab CI/CD. Если нужен self-hosted runner, ему можно добавить отдельный label, например `lab3-cicd`, и заменить `runs-on` в workflow.
 
 ## Что делает пайплайн
 

@@ -1,5 +1,19 @@
 # CHANGES
 
+## Lab 3 (vs Lab 2)
+
+### GitHub Actions CI/CD
+- Added `.github/workflows/lab3-ci-cd.yml` as a GitHub Actions adaptation of the GitLab CI/CD assignment
+- Added `test` job that runs on every branch and checks that `dags/`, `spark/`, `Dockerfile`, and `docker-compose.yml` exist
+- Added Python syntax validation for DAG and Spark scripts
+- Added Docker Compose configuration validation with `docker compose config --quiet`
+- Added `build` job that builds the Airflow Docker image after successful tests
+- Configured `build` to skip automatic runs for branches with the `feature/` prefix while still allowing manual `workflow_dispatch`
+- Added `deploy` job that runs `docker compose up -d --build`
+- Configured automatic deploy only for pushes to `main`, `master`, and `develop`
+- Added manual deploy option through `workflow_dispatch` input `deploy`
+- Pinned jobs to the GitHub Actions runner label `ubuntu-latest`, which is the GitHub Actions equivalent of selecting a tagged runner
+
 ## Lab 2 (vs Lab 1)
 
 ### Dockerfile
