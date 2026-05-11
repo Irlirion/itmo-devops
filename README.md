@@ -1,52 +1,62 @@
-# Lab 1: Apache Airflow with Docker Compose
+# Лабораторная работа 4: Loki + Prometheus + Grafana
 
-## Description
+## О чём работа
 
-This project deploys Apache Airflow 2.7.1 using Docker Compose and includes a custom data processing DAG.
+Проект поднимает Airflow, Spark и стек наблюдаемости в Docker Compose. Airflow запускает Spark-задачу, Alloy собирает логи Airflow и Spark в Loki, Prometheus собирает метрики Airflow/Spark, а Grafana показывает готовый дашборд с двумя плитками.
 
-## Files
+## Сервисы
 
-- `Dockerfile` - Custom Airflow image with DAGs
-- `docker-compose.yml` - Docker Compose configuration
-- `dags/data_pipeline.py` - Custom DAG with data processing pipeline
+| Сервис | Адрес | Назначение |
+|---|---|---|
+| Airflow UI | http://localhost:8080 | Управление DAG-ами, логин/пароль: `airflow` / `airflow` |
+| Spark Master UI | http://localhost:4040 | Состояние Spark-кластера |
+| Spark Worker UI | http://localhost:4041 | Состояние worker-а |
+| Grafana | http://localhost:3000 | Дашборд `Lab 4 Observability` |
+| Prometheus | http://localhost:9090 | Метрики и target-ы |
+| Loki | http://localhost:3100 | Хранилище логов |
 
-## DAG Overview
+## Что добавлено
 
-The `data_pipeline_dag` performs the following tasks:
+- `alloy.conf` - сбор логов Airflow и Spark в Loki
+- `prometheus.yml` - сбор метрик Airflow, Spark master и Spark worker
+- `grafana/provisioning/` - автоматическое создание datasource-ов Loki/Prometheus и дашборда
+- `dags/spark_pipeline.py` - DAG, который запускает Spark job
+- `spark/data_pipeline_spark.py` - Spark-приложение с расчётом статистики
+- `spark/conf/metrics.properties` - Prometheus endpoint-ы для Spark metrics
 
-1. **generate_data** - Generates 50 random numbers
-2. **calculate_statistics** - Calculates total, average, min, max
-3. **transform_data** - Multiplies data by 2 and filters above average
-4. **save_results** - Saves results to JSON file
-5. **start/end** - Bash operators for logging
-
-## Deployment
-
-### Prerequisites
-
-- Docker
-- Docker Compose
-
-### Steps
-
-1. Build and start containers:
-   ```bash
-   docker-compose up -d --build
-   ```
-
-2. Wait for containers to become healthy:
-   ```bash
-   docker ps
-   ```
-
-3. Access Airflow UI at: http://localhost:8080/
-   - Username: `airflow`
-   - Password: `airflow`
-
-4. The DAG should appear in the Airflow UI and can be triggered manually.
-
-## Cleanup
+## Запуск
 
 ```bash
-docker-compose down -v
+docker compose up -d --build
+```
+
+Проверить контейнеры:
+
+```bash
+docker compose ps
+```
+
+Запустить Spark DAG вручную:
+
+```bash
+docker compose exec airflow-webserver airflow dags trigger spark_data_pipeline
+```
+
+После успешного запуска результат появится в `output/spark_result.json`, а логи - в `logs/` и `spark/logs/`.
+
+## Что смотреть в Grafana
+
+Откройте http://localhost:3000 и перейдите в дашборд `Lab 4 Observability`.
+
+На дашборде есть две плитки:
+
+1. `Spark logs from Loki` - запрос `{job="spark_logs"}`
+2. `Spark targets from Prometheus` - запрос `up{job=~"spark-.*"}`
+
+Для отчёта нужен скриншот этого дашборда и новые конфиги `alloy.conf`, `prometheus.yml`, `grafana/provisioning/`.
+
+## Остановка
+
+```bash
+docker compose down -v
 ```
