@@ -58,7 +58,16 @@ docker compose exec airflow-webserver airflow dags trigger spark_data_pipeline
 
 ![Grafana dashboard](docs/screen_grafana.png)
 
-Для отчёта нужен скриншот этого дашборда и новые конфиги `alloy.conf`, `prometheus.yml`, `grafana/provisioning/`.
+## Результат работы
+
+В репозитории есть всё, что нужно для проверки лабораторной:
+
+- скриншот Grafana-дэшборда добавлен выше в README
+- [alloy.conf](alloy.conf) настраивает сбор логов Airflow и Spark в Loki
+- [prometheus.yml](prometheus.yml) настраивает сбор метрик Airflow, Spark master и Spark worker
+- [grafana/provisioning/datasources/datasources.yml](grafana/provisioning/datasources/datasources.yml) автоматически добавляет Loki и Prometheus как источники данных Grafana
+- [grafana/provisioning/dashboards/dashboards.yml](grafana/provisioning/dashboards/dashboards.yml) подключает папку с дашбордами
+- [grafana/provisioning/dashboards/lab4-dashboard.json](grafana/provisioning/dashboards/lab4-dashboard.json) содержит готовый дашборд `Lab 4 Observability`
 
 ## Остановка
 
