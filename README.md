@@ -60,7 +60,7 @@ docker compose exec airflow-webserver airflow dags trigger spark_data_pipeline
 
 ## Результат работы
 
-В репозитории есть всё, что нужно для проверки лабораторной:
+Основные материалы для проверки лабораторной собраны в репозитории:
 
 - скриншот Grafana-дэшборда добавлен выше в README
 - [alloy.conf](alloy.conf) настраивает сбор логов Airflow и Spark в Loki
