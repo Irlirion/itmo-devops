@@ -2,7 +2,7 @@
 
 ## О чём работа
 
-Проект поднимает Airflow, Spark и стек наблюдаемости в Docker Compose. Airflow запускает Spark-задачу, Alloy собирает логи Airflow и Spark в Loki, Prometheus собирает метрики Airflow/Spark, а Grafana показывает готовый дашборд с двумя плитками.
+Проект поднимает Airflow, Spark и стек наблюдаемости в Docker Compose. Airflow запускает Spark-задачу, Alloy собирает логи Airflow и Spark в Loki, Prometheus собирает метрики Airflow/Spark, а Grafana показывает готовый дашборд с логами и статусом Spark target-ов.
 
 ## Сервисы
 
@@ -48,10 +48,15 @@ docker compose exec airflow-webserver airflow dags trigger spark_data_pipeline
 
 Откройте http://localhost:3000 и перейдите в дашборд `Lab 4 Observability`.
 
-На дашборде есть две плитки:
+На дашборде есть три панели:
 
 1. `Spark logs from Loki` - запрос `{job="spark_logs"}`
-2. `Spark targets from Prometheus` - запрос `up{job=~"spark-.*"}`
+2. `spark-master status` - запрос `up{job="spark-master"}`
+3. `spark-worker status` - запрос `up{job="spark-worker"}`
+
+## Скриншот дашборда
+
+![Grafana dashboard](docs/screen_grafana.png)
 
 Для отчёта нужен скриншот этого дашборда и новые конфиги `alloy.conf`, `prometheus.yml`, `grafana/provisioning/`.
 
